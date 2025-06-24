@@ -56,9 +56,9 @@ public class WebSecurityConfig {
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
-                                        "/api/auth/**",
+                                        "/auth/**",
                                         "/",
-                                        "/api/sensor-states" // allow access to sensor state endpoint for all IoT devices
+                                        "/sensor-states" // allow access to sensor state endpoint for all IoT devices
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 );

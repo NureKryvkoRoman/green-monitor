@@ -16,13 +16,19 @@ import ua.nure.kryvko.greenmonitor.user.UserRole;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
-    static final String EMAIL_PATTERN = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
-            + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
+    private static class TokenPair {
+        public String accessToken;
+        public String refreshToken;
+
+        public TokenPair(String accessToken, String refreshToken) {
+            this.accessToken = accessToken;
+            this.refreshToken = refreshToken;
+        }
+    }
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -37,24 +43,19 @@ public class AuthController {
     JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> authenticateUser(@RequestBody @Valid LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> authenticateUser(@RequestBody @Valid AuthRequest authRequest) {
         try {
-            //TODO: remove checks as redundant since we already use @Valid??
-            if (!Pattern.compile(EMAIL_PATTERN).matcher(loginRequest.getEmail()).matches()) {
-                return new ResponseEntity<>(new AuthResponse("Invalid email address."), HttpStatus.BAD_REQUEST);
-            }
-
-            Optional<User> optionalUser = userRepository.findByEmail(loginRequest.getEmail());
+            Optional<User> optionalUser = userRepository.findByEmail(authRequest.getEmail());
             if (optionalUser.isEmpty()) {
                 return new ResponseEntity<>(new AuthResponse("User not found"), HttpStatus.UNAUTHORIZED);
             }
 
             User user = optionalUser.get();
-            Map<String, String> tokens = generateTokens(loginRequest.getPassword(), user);
+            TokenPair tokens = generateTokens(authRequest.getPassword(), user);
             AuthResponse loginResponse = new AuthResponse(
                     user.getId(),
-                    tokens.get("accessToken"),
-                    tokens.get("refreshToken"),
+                    tokens.accessToken,
+                    tokens.refreshToken,
                     user.getEmail(),
                     user.getRole()
             );
@@ -67,7 +68,7 @@ public class AuthController {
         }
     }
 
-    private Map<String, String> generateTokens(String password, User user) {
+    private TokenPair generateTokens(String password, User user) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         user.getEmail(), // Always use email for authentication
@@ -79,34 +80,27 @@ public class AuthController {
         String accessToken = jwtUtil.generateAccessToken(userDetails.getUsername());
         String refreshToken = jwtUtil.generateRefreshToken(userDetails.getUsername());
 
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", accessToken);
-        tokens.put("refreshToken", refreshToken);
-
-        return tokens;
+        return new TokenPair(accessToken, refreshToken);
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid SignUpRequest signUpRequest) {
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+    public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid AuthRequest authRequest) {
+        if (userRepository.existsByEmail(authRequest.getEmail())) {
             return new ResponseEntity<>(new AuthResponse("User with this email already exists."), HttpStatus.CONFLICT);
         }
 
-        if (!Pattern.compile(EMAIL_PATTERN).matcher(signUpRequest.getEmail()).matches())
-            return new ResponseEntity<>(new AuthResponse("Invalid email address."), HttpStatus.BAD_REQUEST);
-
         User newUser = new User(
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()),
+                authRequest.getEmail(),
+                encoder.encode(authRequest.getPassword()),
                 UserRole.USER
         );
 
         newUser = userRepository.save(newUser);
-        Map<String, String> tokens = generateTokens(signUpRequest.getPassword(), newUser);
+        TokenPair tokens = generateTokens(authRequest.getPassword(), newUser);
         AuthResponse signUpResponse = new AuthResponse(
                 newUser.getId(),
-                tokens.get("accessToken"),
-                tokens.get("refreshToken"),
+                tokens.accessToken,
+                tokens.refreshToken,
                 newUser.getEmail(),
                 newUser.getRole()
         );
