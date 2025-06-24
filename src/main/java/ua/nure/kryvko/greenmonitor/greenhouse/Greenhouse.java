@@ -1,6 +1,7 @@
 package ua.nure.kryvko.greenmonitor.greenhouse;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.DynamicInsert;
@@ -32,15 +33,13 @@ public class Greenhouse {
     @OneToMany(mappedBy = "greenhouse")
     List<Sensor> sensors;
 
-    @NotNull
     @ManyToOne
     @JoinColumn(name = "plant_id", referencedColumnName = "id", nullable = false)
     Plant plant;
 
-    @NotEmpty
+    @NotBlank
     String name;
 
-    @NotEmpty
     String description;
 
     public Greenhouse() {}
