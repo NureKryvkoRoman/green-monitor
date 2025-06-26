@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-//TODO: write BOTH MQTT and REST implementations, one - for sensors, the other one - for users
 @Service
 public class SensorStateService {
     @Autowired
