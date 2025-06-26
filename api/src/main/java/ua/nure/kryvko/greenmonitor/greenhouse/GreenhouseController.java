@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ua.nure.kryvko.greenmonitor.auth.CustomUserDetails;
+import ua.nure.kryvko.greenmonitor.user.User;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,8 +23,14 @@ public class GreenhouseController {
     private GreenhouseService greenhouseService;
 
     @PostMapping
-    public ResponseEntity<GreenhouseResponse> createGreenhouse(@RequestBody Greenhouse greenhouse) {
+    public ResponseEntity<GreenhouseResponse> createGreenhouse(@RequestBody Greenhouse greenhouse, Authentication authentication) {
         try {
+            if (greenhouse.getUser() == null) {
+                Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
+                User owner = new User();
+                owner.setId(userId);
+                greenhouse.setUser(owner);
+            }
             Greenhouse savedGreenhouse = greenhouseService.saveGreenhouse(greenhouse);
             return new ResponseEntity<>(GreenhouseDTOMapper.toDto(savedGreenhouse), HttpStatus.CREATED);
         } catch (ResponseStatusException e) {
@@ -31,6 +38,7 @@ public class GreenhouseController {
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -115,8 +123,16 @@ public class GreenhouseController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("@authorizationService.canAccessGreenhouse(#id, authentication)")
-    public ResponseEntity<GreenhouseResponse> updateGreenhouse(@PathVariable Integer id, @RequestBody Greenhouse greenhouse) {
+    public ResponseEntity<GreenhouseResponse> updateGreenhouse(@PathVariable Integer id,
+                                                               @RequestBody Greenhouse greenhouse,
+                                                               Authentication authentication) {
         try {
+            if (greenhouse.getUser() == null) {
+                Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
+                User owner = new User();
+                owner.setId(userId);
+                greenhouse.setUser(owner);
+            }
             Greenhouse updatedGreenhouse = greenhouseService.updateGreenhouse(id, greenhouse);
             return ResponseEntity.ok(GreenhouseDTOMapper.toDto(updatedGreenhouse));
         } catch (ResponseStatusException e) {

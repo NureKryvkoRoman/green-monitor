@@ -18,8 +18,9 @@ public class PlantController {
     private PlantService plantService;
 
     @GetMapping
-    public List<Plant> findAll() {
-        return plantService.getAllPlants();
+    public List<PlantResponse> findAll() {
+        List<Plant> plantList = plantService.getAllPlants();
+        return plantList.stream().map(PlantDTOMapper::toDto).toList();
     }
 
     @GetMapping("/{id}")
