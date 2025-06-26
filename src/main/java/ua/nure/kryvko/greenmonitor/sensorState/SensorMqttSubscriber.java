@@ -6,6 +6,8 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ua.nure.kryvko.greenmonitor.sensor.Sensor;
@@ -15,6 +17,7 @@ import java.util.UUID;
 
 @Component
 public class SensorMqttSubscriber {
+    private static final Logger logger = LoggerFactory.getLogger(SensorMqttSubscriber.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -39,7 +42,8 @@ public class SensorMqttSubscriber {
 
             client.subscribe(mqttProperties.getTopic(), this::handleMessage);
         } catch (MqttException e) {
-            throw new RuntimeException("Failed to connect to MQTT broker", e);
+            logger.error("Failed to connect to MQTT broker:");
+            e.printStackTrace();
         }
     }
 
@@ -60,10 +64,8 @@ public class SensorMqttSubscriber {
             state.setSensor(sensor);
 
             sensorStateService.saveSensorState(state);
-
         } catch (Exception e) {
-            System.err.println("Error processing MQTT message: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error processing MQTT message: {}", e.getMessage());
         }
     }
 
@@ -73,8 +75,7 @@ public class SensorMqttSubscriber {
         private Float humidity;
         private Float moisture;
 
-        public MqttSensorPayload() {
-        }
+        public MqttSensorPayload() {}
 
         public MqttSensorPayload(Integer sensorId, Float temperature, Float humidity, Float moisture) {
             this.sensorId = sensorId;
