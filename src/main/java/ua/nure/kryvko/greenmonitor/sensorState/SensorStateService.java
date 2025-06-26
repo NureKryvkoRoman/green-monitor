@@ -14,6 +14,7 @@ import ua.nure.kryvko.greenmonitor.plant.Plant;
 import ua.nure.kryvko.greenmonitor.sensor.Sensor;
 import ua.nure.kryvko.greenmonitor.sensor.SensorRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -70,7 +71,7 @@ public class SensorStateService {
 
         SensorState savedState = sensorStateRepository.save(sensorState);
 
-        if (urgency != null && !messageBuilder.isEmpty()) {
+        if (!messageBuilder.isEmpty()) {
             Notification notification = new Notification();
             notification.setGreenhouse(greenhouse);
             notification.setUser(greenhouse.getUser());
@@ -120,5 +121,13 @@ public class SensorStateService {
         }
 
         sensorStateRepository.deleteById(id);
+    }
+
+    public List<SensorState> getSensorStatesBetween(Integer id, LocalDateTime start, LocalDateTime end) {
+        if (!sensorRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor ID not found.");
+        }
+
+        return sensorStateRepository.findBySensorIdAndTimestampBetween(id, start, end);
     }
 }
