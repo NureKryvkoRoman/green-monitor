@@ -9,6 +9,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ua.nure.kryvko.greenmonitor.auth.CustomUserDetails;
+import ua.nure.kryvko.greenmonitor.plant.Plant;
+import ua.nure.kryvko.greenmonitor.plant.PlantDTOMapper;
+import ua.nure.kryvko.greenmonitor.plant.PlantResponse;
 import ua.nure.kryvko.greenmonitor.user.User;
 
 import java.time.LocalDate;
@@ -119,6 +122,21 @@ public class GreenhouseController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return ResponseEntity.ok(GreenhouseDTOMapper.toDto(greenhouse.get()));
+    }
+
+    @GetMapping("/plant/{id}")
+    @PreAuthorize("@authorizationService.canAccessGreenhouse(#id, authentication)")
+    public ResponseEntity<PlantResponse> getPlantByGreenhouseId(@PathVariable Integer id) {
+        try {
+            Plant plant = greenhouseService.getPlantByGreenhouseId(id);
+            return ResponseEntity.ok(PlantDTOMapper.toDto(plant));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).build();
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PatchMapping("/{id}")

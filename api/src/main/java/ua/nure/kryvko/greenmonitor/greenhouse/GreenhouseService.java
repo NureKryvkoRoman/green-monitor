@@ -108,6 +108,13 @@ public class GreenhouseService {
         return greenhouseRepository.save(greenhouse);
     }
 
+    public Plant getPlantByGreenhouseId(Integer greenhouseId) {
+        Greenhouse greenhouse = greenhouseRepository.findById(greenhouseId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Greenhouse with id " +
+                        greenhouseId + " not found."));
+        return greenhouse.getPlant();
+    }
+
     public Optional<Greenhouse> getGreenhouseById(Integer id) {
         return greenhouseRepository.findById(id);
     }
