@@ -13,7 +13,11 @@ import {
   DialogTitle,
   DialogActions,
   DialogContent,
-  IconButton
+  IconButton,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
@@ -25,10 +29,11 @@ const GreenhouseList = () => {
   const [greenhouses, setGreenhouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [plants, setPlants] = useState([]);
   const [newGreenhouse, setNewGreenhouse] = useState({
     name: '',
-    latitude: '',
-    longitude: ''
+    description: '',
+    plantId: ''
   });
 
   const navigate = useNavigate();
@@ -39,19 +44,17 @@ const GreenhouseList = () => {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/greenhouses/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${user.accessToken}`,
-          }
-        });
-      console.log(res)
+      const res = await fetch(`http://localhost:8080/greenhouses/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${user.accessToken}`,
+        }
+      });
       if (!res.ok) {
         toast.error("Failed to delete greenhouse");
       } else {
         toast.success("Successfully deleted greenhouse");
-        setGreenhouses(greenhouses.filter(gh => gh.id != id)); // remove deleted greenhouse from view
+        setGreenhouses(greenhouses.filter(gh => gh.id !== id));
       }
     } catch (err) {
       toast.error("Failed to delete greenhouse");
@@ -62,14 +65,13 @@ const GreenhouseList = () => {
   const handleCreateGreenhouse = async () => {
     try {
       const data = {
-        ...newGreenhouse,
-        latitude: parseFloat(newGreenhouse.latitude),
-        longitude: parseFloat(newGreenhouse.longitude),
-        user: { id: parseInt(user.id) }
+        name: newGreenhouse.name,
+        description: newGreenhouse.description,
+        plant: { id: parseInt(newGreenhouse.plantId) }
       };
 
-      console.log(data);
-      const res = await fetch('http://localhost:8080/api/greenhouses', {
+      console.log(data)
+      const res = await fetch('http://localhost:8080/greenhouses', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${user.accessToken}`,
@@ -77,12 +79,11 @@ const GreenhouseList = () => {
         },
         body: JSON.stringify(data)
       });
-      console.log(res);
 
       if (!res.ok) throw new Error('Failed to create greenhouse');
       toast.success('Greenhouse created');
       setCreateDialogOpen(false);
-      setNewGreenhouse({ name: '', latitude: '', longitude: '' });
+      setNewGreenhouse({ name: '', description: '', plantId: '' });
       fetchGreenhouses();
     } catch (err) {
       console.error(err);
@@ -93,18 +94,14 @@ const GreenhouseList = () => {
   const fetchGreenhouses = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        `http://localhost:8080/api/greenhouses/summary/my`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.accessToken}`
-          }
+      const res = await fetch('http://localhost:8080/greenhouses/summary/my', {
+        headers: {
+          Authorization: `Bearer ${user.accessToken}`
         }
-      );
+      });
 
       if (!res.ok) throw new Error('Failed to fetch greenhouses');
       const data = await res.json();
-      console.log(data)
       setGreenhouses(data);
     } catch (err) {
       console.error(err);
@@ -114,13 +111,28 @@ const GreenhouseList = () => {
     }
   };
 
+  const fetchPlants = async () => {
+    try {
+      const res = await fetch('http://localhost:8080/plant');
+      if (!res.ok) throw new Error('Failed to fetch plants');
+      const data = await res.json();
+      setPlants(data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load plant list');
+    }
+  };
+
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       navigate('/admin');
       return;
     }
 
-    if (user?.email) fetchGreenhouses();
+    if (user?.email) {
+      fetchGreenhouses();
+      fetchPlants();
+    }
   }, [user]);
 
   if (!user) return (
@@ -152,7 +164,7 @@ const GreenhouseList = () => {
       ) : (
         <Grid container spacing={3} mt={2}>
           {greenhouses.map((gh) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={gh.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4, }} key={gh.id}>
               <Card
                 sx={{ height: '100%' }}
                 onClick={() => navigate(`/greenhouses/${gh.id}`)}
@@ -164,16 +176,16 @@ const GreenhouseList = () => {
                   </Typography>
                   <Box textAlign="left">
                     <Typography variant="body2" color="text.secondary">
-                      Created: {gh.createdAt ? new Date(gh.createdAt).toLocaleString() : 'no data'}
+                      Description: {gh.description || 'No description'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Latitude: {gh.latitude}
+                      Plant ID: {plants.find(p => p.id === gh.plantId)?.name || gh.plantId}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Longitude: {gh.longitude}
+                      Sensors: {gh.sensors?.length || 0}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Sensors: {gh.sensorCount}
+                      Notifications: {gh.notifications?.length || 0}
                     </Typography>
                   </Box>
                   <IconButton
@@ -207,22 +219,27 @@ const GreenhouseList = () => {
           />
           <TextField
             margin="dense"
-            label="Latitude"
-            name="latitude"
-            type="number"
-            value={newGreenhouse.latitude}
+            label="Description"
+            name="description"
+            value={newGreenhouse.description}
             onChange={handleCreateFieldChange}
             fullWidth
           />
-          <TextField
-            margin="dense"
-            label="Longitude"
-            name="longitude"
-            type="number"
-            value={newGreenhouse.longitude}
-            onChange={handleCreateFieldChange}
-            fullWidth
-          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Plant</InputLabel>
+            <Select
+              name="plantId"
+              value={newGreenhouse.plantId}
+              label="Plant"
+              onChange={handleCreateFieldChange}
+            >
+              {plants.map((plant) => (
+                <MenuItem key={plant.id} value={plant.id}>
+                  {plant.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>

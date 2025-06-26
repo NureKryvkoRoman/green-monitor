@@ -121,7 +121,7 @@ public class GreenhouseService {
 
         User owner = userRepository.findById(greenhouse.getUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        Plant plant = plantRepository.findById(greenhouse.getUser().getId())
+        Plant plant = plantRepository.findById(greenhouse.getPlant().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Plant not found"));
 
         greenhouse.setUser(owner);

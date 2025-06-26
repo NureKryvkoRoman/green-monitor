@@ -48,12 +48,6 @@ const Header = () => {
             <Button color="inherit" onClick={() => navigate('/')}>
               Greenhouses
             </Button>
-            <Button color="inherit" onClick={() => navigate('/dashboard/' + user.id)}>
-              Dashboard
-            </Button>
-            <Button color="inherit" onClick={() => navigate('/profile')}>
-              Profile
-            </Button>
             <Button color="inherit" onClick={logout}>
               Logout
             </Button>
