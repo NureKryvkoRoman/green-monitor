@@ -7,10 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ua.nure.kryvko.greenmonitor.greenhouse.Greenhouse;
 import ua.nure.kryvko.greenmonitor.greenhouse.GreenhouseRepository;
+import ua.nure.kryvko.greenmonitor.notification.Notification;
+import ua.nure.kryvko.greenmonitor.notification.NotificationRepository;
+import ua.nure.kryvko.greenmonitor.notification.NotificationUrgency;
+import ua.nure.kryvko.greenmonitor.plant.Plant;
 import ua.nure.kryvko.greenmonitor.sensor.Sensor;
 import ua.nure.kryvko.greenmonitor.sensor.SensorRepository;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +26,9 @@ public class SensorStateService {
     private SensorStateRepository sensorStateRepository;
 
     @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
     private SensorRepository sensorRepository;
 
     @Autowired
@@ -28,12 +36,52 @@ public class SensorStateService {
 
     @Transactional
     public SensorState saveSensorState(SensorState sensorState) {
-        Sensor owner = sensorRepository.findById(sensorState.getSensor().getId())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor not found"));
-        sensorState.setSensor(owner);
+        Sensor sensor = sensorRepository.findById(sensorState.getSensor().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor not found"));
 
-        Greenhouse greenhouse = owner.getGreenhouse();
-        return sensorStateRepository.save(sensorState);
+        sensorState.setSensor(sensor);
+        Greenhouse greenhouse = sensor.getGreenhouse();
+        Plant plant = greenhouse.getPlant();
+
+        StringBuilder messageBuilder = new StringBuilder();
+        NotificationUrgency urgency = null;
+
+        Float temp = sensorState.getTemperature();
+        Float humidity = sensorState.getHumidity();
+        Float moisture = sensorState.getMoisture();
+
+        if (temp != null && !plant.isNormalTemperature(temp)) {
+            messageBuilder.append(String.format("Temperature %.1f°C is out of range (%.1f°C - %.1f°C). ",
+                    temp, plant.getMinTemperature(), plant.getMaxTemperature()));
+            urgency = NotificationUrgency.WARNING;
+        }
+
+        if (humidity != null && !plant.isNormalHumidity(humidity)) {
+            messageBuilder.append(String.format("Humidity %.1f%% is out of range (%.1f%% - %.1f%%). ",
+                    humidity, plant.getMinHumidity(), plant.getMaxHumidity()));
+            urgency = NotificationUrgency.WARNING;
+        }
+
+        if (moisture != null && !plant.isNormalMoisture(moisture)) {
+            messageBuilder.append(String.format("Soil moisture %.1f is out of range (%.1f - %.1f). ",
+                    moisture, plant.getMinMoisture(), plant.getMaxMoisture()));
+            urgency = NotificationUrgency.WARNING;
+        }
+
+        SensorState savedState = sensorStateRepository.save(sensorState);
+
+        if (urgency != null && !messageBuilder.isEmpty()) {
+            Notification notification = new Notification();
+            notification.setGreenhouse(greenhouse);
+            notification.setUser(greenhouse.getUser());
+            notification.setMessage(messageBuilder.toString().trim());
+            notification.setTimestamp(new Date());
+            notification.setNotificationUrgency(urgency);
+
+            notificationRepository.save(notification);
+        }
+
+        return savedState;
     }
 
     public Optional<SensorState> getSensorStateById(Integer id) {

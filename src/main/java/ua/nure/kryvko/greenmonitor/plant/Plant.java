@@ -57,6 +57,18 @@ public class Plant {
         this.maxMoisture = maxMoisture;
     }
 
+    public boolean isNormalTemperature(Float temperature) {
+        return temperature > minTemperature && temperature < maxTemperature;
+    }
+
+    public boolean isNormalHumidity(Float humidity) {
+        return humidity > minHumidity && humidity < maxHumidity;
+    }
+
+    public boolean isNormalMoisture(Float moisture) {
+        return moisture > minMoisture && moisture < maxMoisture;
+    }
+
     public Integer getId() {
         return id;
     }

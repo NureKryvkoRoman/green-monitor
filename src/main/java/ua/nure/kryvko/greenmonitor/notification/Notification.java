@@ -20,12 +20,12 @@ public class Notification {
     Integer id;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     User user;
 
     @Nullable
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "greenhouse_id", referencedColumnName = "id")
     Greenhouse greenhouse;
 
