@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import ua.nure.kryvko.greenmonitor.auth.CustomUserDetails;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,12 +17,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/notifications")
 public class NotificationController {
 
-    private final NotificationService notificationService;
-
     @Autowired
-    public NotificationController(NotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
+    private NotificationService notificationService;
 
     @PostMapping
     public ResponseEntity<NotificationResponse> createNotification(@RequestBody Notification notification) {
@@ -46,12 +44,26 @@ public class NotificationController {
         return ResponseEntity.ok(NotificationDTOMapper.toDto(notification.get()));
     }
 
-    //TODO: add deducting user id by token
     @GetMapping("/user/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<List<NotificationResponse>> getNotificationsByUserId(@PathVariable Integer id) {
         try {
             List<Notification> notifications = notificationService.getNotificationByUserId(id);
+            return ResponseEntity.ok(notifications.stream().map(NotificationDTOMapper::toDto)
+                    .collect(Collectors.toList()));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).build();
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<List<NotificationResponse>> getNotificationsByUserId(Authentication authentication) {
+        try {
+            Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
+            List<Notification> notifications = notificationService.getNotificationByUserId(userId);
             return ResponseEntity.ok(notifications.stream().map(NotificationDTOMapper::toDto)
                     .collect(Collectors.toList()));
         } catch (ResponseStatusException e) {
@@ -75,11 +87,12 @@ public class NotificationController {
         }
     }
 
-    @GetMapping("/user/unread/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<List<NotificationResponse>> getUnreadNotificationsByUser(@PathVariable Integer id) {
+    @GetMapping("/my/unread")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<List<NotificationResponse>> getUnreadNotificationsByUser(Authentication authentication) {
         try {
-            List<Notification> notifications = notificationService.getUnreadNotificationsByUser(id);
+            Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
+            List<Notification> notifications = notificationService.getUnreadNotificationsByUser(userId);
             return ResponseEntity.ok(notifications.stream().map(NotificationDTOMapper::toDto)
                     .collect(Collectors.toList()));
         } catch (ResponseStatusException e) {
@@ -89,11 +102,13 @@ public class NotificationController {
         }
     }
 
-    @GetMapping("/user/urgency/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<List<NotificationResponse>> getUnreadNotificationsByUser(@PathVariable Integer id, @RequestParam NotificationUrgency urgency) {
+    @GetMapping("/my/urgency")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<List<NotificationResponse>> getUnreadNotificationsByUser(Authentication authentication,
+                                                                                   @RequestParam NotificationUrgency urgency) {
         try {
-            List<Notification> notifications = notificationService.getUnreadNotificationsByUserUrgency(id, urgency);
+            Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
+            List<Notification> notifications = notificationService.getUnreadNotificationsByUserUrgency(userId, urgency);
             return ResponseEntity.ok(notifications.stream().map(NotificationDTOMapper::toDto)
                     .collect(Collectors.toList()));
         } catch (ResponseStatusException e) {

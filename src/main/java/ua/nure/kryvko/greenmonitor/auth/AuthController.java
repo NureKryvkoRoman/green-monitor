@@ -53,7 +53,6 @@ public class AuthController {
             User user = optionalUser.get();
             TokenPair tokens = generateTokens(authRequest.getPassword(), user);
             AuthResponse loginResponse = new AuthResponse(
-                    user.getId(),
                     tokens.accessToken,
                     tokens.refreshToken,
                     user.getEmail(),
@@ -98,7 +97,6 @@ public class AuthController {
         newUser = userRepository.save(newUser);
         TokenPair tokens = generateTokens(authRequest.getPassword(), newUser);
         AuthResponse signUpResponse = new AuthResponse(
-                newUser.getId(),
                 tokens.accessToken,
                 tokens.refreshToken,
                 newUser.getEmail(),

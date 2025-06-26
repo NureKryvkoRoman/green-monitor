@@ -3,7 +3,6 @@ package ua.nure.kryvko.greenmonitor.auth;
 import ua.nure.kryvko.greenmonitor.user.UserRole;
 
 public class AuthResponse {
-    Integer id;
     String accessToken;
     String refreshToken;
     String email;
@@ -14,20 +13,11 @@ public class AuthResponse {
         this.error = error;
     }
 
-    public AuthResponse(Integer id, String accessToken, String refreshToken, String email, UserRole role) {
-        this.id = id;
+    public AuthResponse(String accessToken, String refreshToken, String email, UserRole role) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.email = email;
         this.role = role;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getAccessToken() {

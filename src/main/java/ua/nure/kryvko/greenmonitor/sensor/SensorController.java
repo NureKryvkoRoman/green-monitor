@@ -1,6 +1,5 @@
 package ua.nure.kryvko.greenmonitor.sensor;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +15,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/sensors")
 public class SensorController {
 
-    private final SensorService sensorService;
-
     @Autowired
-    public SensorController(SensorService sensorService) {
-        this.sensorService = sensorService;
-    }
+    private SensorService sensorService;
 
     @PostMapping
     public ResponseEntity<SensorResponse> createSensor(@RequestBody Sensor sensor) {

@@ -5,8 +5,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import ua.nure.kryvko.greenmonitor.auth.CustomUserDetails;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,10 +35,11 @@ public class GreenhouseController {
         }
     }
 
-    @GetMapping("/usersummary/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<List<GreenhouseSummary>> getGreenhousesSummaryByUserId(@PathVariable Integer userId) {
+    @GetMapping("/summary/my")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<List<GreenhouseSummary>> getGreenhousesSummaryForUser(Authentication authentication) {
         try {
+            Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
             List<GreenhouseSummary> greenhouses = greenhouseService.getGreenhousesSummaryByUserId(userId);
             return ResponseEntity.ok(greenhouses);
         } catch (ResponseStatusException e) {
@@ -46,13 +49,31 @@ public class GreenhouseController {
         }
     }
 
-    //TODO: add userId deduction via token?
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<List<GreenhouseResponse>> getGreenhousesByUserId(@PathVariable Integer userId) {
         try {
             List<Greenhouse> greenhouses = greenhouseService.getGreenhousesByUserId(userId);
-            return ResponseEntity.ok(greenhouses.stream().map(GreenhouseDTOMapper::toDto).collect(Collectors.toList()));
+            return ResponseEntity.ok(greenhouses.stream().map(GreenhouseDTOMapper::toDto).toList());
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).build();
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/user/my")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<List<GreenhouseResponse>> getGreenhousesForAuthenticatedUser(Authentication authentication) {
+        try {
+            Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
+
+            List<Greenhouse> greenhouses = greenhouseService.getGreenhousesByUserId(userId);
+            List<GreenhouseResponse> responses = greenhouses.stream()
+                    .map(GreenhouseDTOMapper::toDto)
+                    .toList();
+
+            return ResponseEntity.ok(responses);
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode()).build();
         } catch (Exception e) {
@@ -80,19 +101,6 @@ public class GreenhouseController {
     ) {
         double dewPoint = greenhouseService.calculateDewPoint(greenhouseId, date);
         return ResponseEntity.ok(dewPoint);
-    }
-
-    @GetMapping("/user")
-    @PreAuthorize("hasRole('ADMIN') or #email == authentication.principal.getUsername()")
-    public ResponseEntity<List<GreenhouseResponse>> getGreenhousesByUserEmail(@RequestParam String email) {
-        try {
-            List<Greenhouse> greenhouses = greenhouseService.getGreenhousesByUserEmail(email);
-            return ResponseEntity.ok(greenhouses.stream().map(GreenhouseDTOMapper::toDto).collect(Collectors.toList()));
-        } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).build();
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 
     @GetMapping("/{id}")
