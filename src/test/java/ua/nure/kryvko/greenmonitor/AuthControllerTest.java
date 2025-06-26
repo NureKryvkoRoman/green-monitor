@@ -9,12 +9,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ua.nure.kryvko.greenmonitor.auth.*;
 import ua.nure.kryvko.greenmonitor.config.WebSecurityConfig;
+import ua.nure.kryvko.greenmonitor.user.User;
 import ua.nure.kryvko.greenmonitor.user.UserRepository;
+import ua.nure.kryvko.greenmonitor.user.UserRole;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -61,18 +65,50 @@ public class AuthControllerTest {
 
     @Test
     void signup_shouldAcceptValidEmail() throws Exception {
+        User expectedUser = new User("user@mail.com", "encodedPwd", UserRole.USER);
+        CustomUserDetails userDetails = new CustomUserDetails(expectedUser);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         AuthRequest loginData = new AuthRequest("user@mail.com", "pwd");
+
+        when(userRepository.save(any(User.class)))
+                .thenReturn(expectedUser);
+        when(authenticationManager.authenticate(any()))
+                .thenReturn(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+
+        when(jwtUtil.generateAccessToken(any())).thenReturn("mockAccessToken");
+        when(jwtUtil.generateRefreshToken(any())).thenReturn("mockRefreshToken");
 
         mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(loginData))
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
     void signup_shouldRejectInvalidEmail() throws Exception {
+        User expectedUser = new User("user@mail.com", "encodedPwd", UserRole.USER);
+        CustomUserDetails userDetails = new CustomUserDetails(expectedUser);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         AuthRequest loginData = new AuthRequest("usermail.com", "pwd");
+
+        when(userRepository.save(any(User.class)))
+                .thenReturn(expectedUser);
+        when(authenticationManager.authenticate(any()))
+                .thenReturn(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+
+        when(jwtUtil.generateAccessToken(any())).thenReturn("mockAccessToken");
+        when(jwtUtil.generateRefreshToken(any())).thenReturn("mockRefreshToken");
 
         mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
