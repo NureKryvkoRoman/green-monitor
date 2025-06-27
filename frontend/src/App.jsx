@@ -11,6 +11,7 @@ import { ToastContainer } from 'react-toastify'
 import Header from './components/Header.jsx'
 import AdminRoute from './components/AdminRoute.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
+import PlantsList from './pages/PlantsList.jsx'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/" element={<GreenhouseList />} />
           <Route path="/greenhouses/:greenhouseId" element={<GreenhouseOverview />} />
           <Route path="/dashboard/:greenhouseId" element={<Dashboard />} />
+          <Route path="/plants" element={<PlantsList />} />
 
           <Route
             path="/admin"

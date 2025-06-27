@@ -14,7 +14,7 @@ const GreenhouseCard = ({ greenhouse, handleDelete }) => {
   const navigate = useNavigate();
 
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 4, }} key={greenhouse.id}>
+    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
       <Card
         sx={{
           height: '100%',
@@ -23,6 +23,7 @@ const GreenhouseCard = ({ greenhouse, handleDelete }) => {
             transform: 'translateY(-4px)',
             boxShadow: 6,
           },
+          bgcolor: "#f9fbe7"
         }}
         onClick={() => navigate(`/greenhouses/${greenhouse.id}`)}
         style={{ cursor: 'pointer' }}

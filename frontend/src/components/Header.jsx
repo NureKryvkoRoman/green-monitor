@@ -6,6 +6,7 @@ import {
   Button,
   Box,
 } from '@mui/material';
+import { EnergySavingsLeafSharp, Grass, Home } from '@mui/icons-material';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,28 +17,41 @@ const Header = () => {
   const isAdmin = user?.role === 'ADMIN';
 
   return (
-    <AppBar position="static" color={isAdmin ? 'info' : 'success'}>
+    <AppBar
+      position="static"
+      sx={{
+        background: isAdmin
+          ? 'linear-gradient(to right, #0288d1, #26c6da)'
+          : 'linear-gradient(to right, #2e7d32, #66bb6a)',
+        boxShadow: 3,
+      }}
+    >
       <Toolbar>
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{ flexGrow: 1, cursor: 'pointer' }}
-          onClick={() => {
-            isAdmin ? navigate('/admin') : navigate('/');
-          }}
+        <Box
+          display="flex"
+          alignItems="center"
+          sx={{ flexGrow: 1 }}
         >
-          GreenMonitor {isAdmin && 'AdminPanel'}
-        </Typography>
+          <EnergySavingsLeafSharp sx={{ mr: 1 }} />
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            onClick={() => navigate(isAdmin ? '/admin' : '/')}
+            sx={{ cursor: 'pointer' }}
+          >
+            GreenMonitor {isAdmin && 'AdminPanel'}
+          </Typography>
+        </Box>
 
         {isAdmin && (
-          <Box display="flex" gap={5}>
-            <Button color="inherit" onClick={() => navigate('/admin')}>
+          <Box display="flex" gap={2} alignItems="center">
+            <Button variant="outlined" color="inherit" onClick={() => navigate('/admin')}>
               Admin
             </Button>
-            <Button color="inherit" onClick={() => navigate('/backup')}>
-              Database Backup
+            <Button variant="outlined" color="inherit" onClick={() => navigate('/backup')}>
+              Backup
             </Button>
-            <Button variant="contained" color="error" onClick={logout}>
+            <Button variant="contained" color="error" onClick={() => { logout(); navigate('/') }}>
               Logout
             </Button>
           </Box>
@@ -45,10 +59,33 @@ const Header = () => {
 
         {user && !isAdmin && (
           <Box display="flex" gap={2}>
-            <Button color="inherit" onClick={() => navigate('/')}>
-              Greenhouses
+            <Button
+              startIcon={<Grass />}
+              sx={{
+                bgcolor: "#2e7d32",
+                ":hover": {
+                  bgcolor: "#296e2c",
+                  boxShadow: 3
+                }
+              }}
+              color="inherit"
+              onClick={() => navigate('/plants')}>
+              Plants
             </Button>
-            <Button color="inherit" onClick={logout}>
+            <Button
+              startIcon={<Home />}
+              sx={{
+                bgcolor: "#2e7d32",
+                ":hover": {
+                  bgcolor: "#296e2c",
+                  boxShadow: 3
+                }
+              }}
+              color="inherit"
+              onClick={() => navigate('/')}>
+              My greenhouses
+            </Button>
+            <Button variant="contained" color="error" onClick={() => { logout(); navigate('/') }}>
               Logout
             </Button>
           </Box>
@@ -56,6 +93,19 @@ const Header = () => {
 
         {!user && (
           <Box display="flex" gap={2}>
+            <Button
+              startIcon={<Grass />}
+              sx={{
+                bgcolor: "#2e7d32",
+                ":hover": {
+                  bgcolor: "#296e2c",
+                  boxShadow: 3
+                }
+              }}
+              color="inherit"
+              onClick={() => navigate('/plants')}>
+              Plants
+            </Button>
             <Button color="inherit" variant="outlined" onClick={() => navigate('/login')}>
               Login
             </Button>
@@ -65,7 +115,7 @@ const Header = () => {
           </Box>
         )}
       </Toolbar>
-    </AppBar>
+    </AppBar >
   );
 };
 

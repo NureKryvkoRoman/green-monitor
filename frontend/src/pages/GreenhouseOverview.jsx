@@ -22,6 +22,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import NotificationsPanel from '../components/NotificationsPanel';
+import PlantCard from '../components/PlantCard';
 
 const GreenhouseOverview = () => {
   const { greenhouseId } = useParams();
@@ -212,31 +213,7 @@ const GreenhouseOverview = () => {
             <Typography variant="body1" color="textSecondary" sx={{ mt: 1 }}>
               {greenhouse.description}
             </Typography>
-            {plant && (
-              <Box
-                mt={3}
-                p={2}
-                borderRadius={2}
-                bgcolor="background.paper"
-                boxShadow={1}
-                border="1px solid"
-                borderColor="divider"
-              >
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  🌿 Plant Info
-                </Typography>
-                <Typography variant="h6"><strong>Name:</strong> {plant.name}</Typography>
-                <Typography variant="body2">
-                  🌡<strong>Temperature:</strong> {plant.minTemperature}–{plant.maxTemperature} °C
-                </Typography>
-                <Typography variant="body2">
-                  💧 <strong>Humidity:</strong> {plant.minHumidity}–{plant.maxHumidity} %
-                </Typography>
-                <Typography variant="body2">
-                  🌱 <strong>Moisture:</strong> {plant.minMoisture}–{plant.maxMoisture} %
-                </Typography>
-              </Box>
-            )}
+            {plant && <PlantCard plant={plant} />}
           </Box>
           <Box display="flex" flexDirection="column" gap={2}>
             <Button
