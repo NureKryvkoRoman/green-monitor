@@ -23,6 +23,7 @@ import { Link, useNavigate } from 'react-router';
 import { Notifications } from '@mui/icons-material';
 import NotificationsPanel from '../components/NotificationsPanel';
 import GreenhouseCard from '../components/GreenhouseCard';
+import PlantsList from './PlantsList';
 
 const GreenhouseList = () => {
   const { user } = useAuth();
@@ -138,9 +139,12 @@ const GreenhouseList = () => {
   }, [user]);
 
   if (!user) return (
-    <Typography variant="h4" marginTop={'2rem'}>
-      Welcome to GreenMonitor! <i><Link to={'/login'}>Login</Link></i> or <i><Link to={'/register'}>Register</Link></i> to work with the website.
-    </Typography>
+    <>
+      <Typography variant="h4" marginTop={'2rem'}>
+        Welcome to GreenMonitor! <i><Link to={'/login'}>Login</Link></i> or <i><Link to={'/register'}>Register</Link></i> to work with the website.
+      </Typography>
+      <PlantsList />
+    </>
   );
 
   if (user?.role === 'ADMIN') return null;
