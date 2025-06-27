@@ -6,7 +6,13 @@ import {
   Button,
   Box,
 } from '@mui/material';
-import { EnergySavingsLeafSharp, Grass, Home } from '@mui/icons-material';
+import {
+  EnergySavingsLeafSharp,
+  Grass,
+  GrassSharp,
+  Home,
+  People
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
@@ -45,11 +51,21 @@ const Header = () => {
 
         {isAdmin && (
           <Box display="flex" gap={2} alignItems="center">
-            <Button variant="outlined" color="inherit" onClick={() => navigate('/admin')}>
-              Admin
+            <Button
+              startIcon={<People />}
+              variant="outlined"
+              color="inherit"
+              onClick={() => navigate('/admin')}
+            >
+              Manage users
             </Button>
-            <Button variant="outlined" color="inherit" onClick={() => navigate('/backup')}>
-              Backup
+            <Button
+              startIcon={<GrassSharp />}
+              variant="outlined"
+              color="inherit"
+              onClick={() => navigate('/admin/plants')}
+            >
+              Manage plants
             </Button>
             <Button variant="contained" color="error" onClick={() => { logout(); navigate('/') }}>
               Logout

@@ -12,6 +12,7 @@ import Header from './components/Header.jsx'
 import AdminRoute from './components/AdminRoute.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import PlantsList from './pages/PlantsList.jsx'
+import AdminPlants from './pages/AdminPlants.jsx'
 
 function App() {
   return (
@@ -32,6 +33,14 @@ function App() {
             element={
               <AdminRoute>
                 <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/plants"
+            element={
+              <AdminRoute>
+                <AdminPlants />
               </AdminRoute>
             }
           />
