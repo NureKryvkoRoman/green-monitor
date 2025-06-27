@@ -17,10 +17,11 @@ import {
   CardContent,
   IconButton
 } from '@mui/material';
-import { Delete, Edit, Dashboard } from '@mui/icons-material';
+import { Delete, Edit, Dashboard, Notifications } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import NotificationsPanel from '../components/NotificationsPanel';
 
 const GreenhouseOverview = () => {
   const { greenhouseId } = useParams();
@@ -33,6 +34,7 @@ const GreenhouseOverview = () => {
   const [sensors, setSensors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sensorDialogOpen, setSensorDialogOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const [form, setForm] = useState({
@@ -191,6 +193,18 @@ const GreenhouseOverview = () => {
         Greenhouse Overview
       </Typography>
 
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h4" gutterBottom>
+          Greenhouse Overview
+        </Typography>
+        <IconButton
+          color="primary"
+          onClick={() => setNotificationsOpen(true)}
+        >
+          <Notifications />
+        </IconButton>
+      </Box>
+
       <Paper sx={{ p: 3, mb: 3 }} style={{ textAlign: "start" }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Box>
@@ -241,6 +255,20 @@ const GreenhouseOverview = () => {
               View Dashboard
             </Button>
           </Box>
+          <Dialog
+            open={notificationsOpen}
+            onClose={() => setNotificationsOpen(false)}
+            fullWidth
+            maxWidth="md"
+          >
+            <DialogTitle>Notifications</DialogTitle>
+            <DialogContent dividers>
+              <NotificationsPanel
+                fetchUrl={`http://localhost:8080/notifications/greenhouse/${greenhouse.id}`}
+                token={user?.accessToken}
+              />
+            </DialogContent>
+          </Dialog>
         </Box>
       </Paper>
 

@@ -5,15 +5,18 @@ public class GreenhouseSummary {
     Integer userId;
     String name;
     Long sensorCount;
+    Long unreadNotifications;
     String plantName;
 
     public GreenhouseSummary() {}
 
-    public GreenhouseSummary(Integer id, Integer userId, String name, Long sensorCount, String plantName) {
+    public GreenhouseSummary(Integer id, Integer userId, String name,
+                             Long sensorCount, Long unreadNotifications, String plantName) {
         this.id = id;
         this.userId = userId;
         this.name = name;
         this.sensorCount = sensorCount;
+        this.unreadNotifications = unreadNotifications;
         this.plantName = plantName;
     }
 
@@ -55,5 +58,13 @@ public class GreenhouseSummary {
 
     public void setPlantName(String plantName) {
         this.plantName = plantName;
+    }
+
+    public Long getUnreadNotifications() {
+        return unreadNotifications;
+    }
+
+    public void setUnreadNotifications(Long unreadNotifications) {
+        this.unreadNotifications = unreadNotifications;
     }
 }

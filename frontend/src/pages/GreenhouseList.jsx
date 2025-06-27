@@ -22,7 +22,8 @@ import {
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router';
-import { Delete } from '@mui/icons-material';
+import { Delete, Notifications } from '@mui/icons-material';
+import NotificationsPanel from '../components/NotificationsPanel';
 
 const GreenhouseList = () => {
   const { user } = useAuth();
@@ -30,6 +31,7 @@ const GreenhouseList = () => {
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [plants, setPlants] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [newGreenhouse, setNewGreenhouse] = useState({
     name: '',
     description: '',
@@ -102,6 +104,7 @@ const GreenhouseList = () => {
 
       if (!res.ok) throw new Error('Failed to fetch greenhouses');
       const data = await res.json();
+      console.log(data)
       setGreenhouses(data);
     } catch (err) {
       console.error(err);
@@ -153,7 +156,30 @@ const GreenhouseList = () => {
         <Button variant="contained" onClick={() => setCreateDialogOpen(true)}>
           + Add Greenhouse
         </Button>
+        <IconButton
+          color="primary"
+          onClick={() => setNotificationsOpen(true)}
+          sx={{ ml: 2 }}
+        >
+          <Notifications />
+        </IconButton>
       </Box>
+
+      <Dialog
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Notifications</DialogTitle>
+        <DialogContent dividers>
+          <NotificationsPanel
+            fetchUrl="http://localhost:8080/notifications/my"
+            token={user?.accessToken}
+            greenhousesList={greenhouses}
+          />
+        </DialogContent>
+      </Dialog>
 
       {loading ? (
         <Box display="flex" justifyContent="center" mt={4}>
@@ -176,16 +202,13 @@ const GreenhouseList = () => {
                   </Typography>
                   <Box textAlign="left">
                     <Typography variant="body2" color="text.secondary">
-                      Description: {gh.description || 'No description'}
+                      Plant: {gh.plantName}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Plant ID: {plants.find(p => p.id === gh.plantId)?.name || gh.plantId}
+                      Sensors: {gh.sensorCount ?? 0}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Sensors: {gh.sensors?.length || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Notifications: {gh.notifications?.length || 0}
+                      Notifications: {gh.unreadNotifications ?? 0}
                     </Typography>
                   </Box>
                   <IconButton
