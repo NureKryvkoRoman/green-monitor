@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   Grid,
-  Card,
-  CardContent,
   Typography,
   Container,
   CircularProgress,
@@ -22,8 +20,9 @@ import {
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router';
-import { Delete, Notifications } from '@mui/icons-material';
+import { Notifications } from '@mui/icons-material';
 import NotificationsPanel from '../components/NotificationsPanel';
+import GreenhouseCard from '../components/GreenhouseCard';
 
 const GreenhouseList = () => {
   const { user } = useAuth();
@@ -190,40 +189,11 @@ const GreenhouseList = () => {
       ) : (
         <Grid container spacing={3} mt={2}>
           {greenhouses.map((gh) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, }} key={gh.id}>
-              <Card
-                sx={{ height: '100%' }}
-                onClick={() => navigate(`/greenhouses/${gh.id}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {gh.name || `Greenhouse #${gh.id}`}
-                  </Typography>
-                  <Box textAlign="left">
-                    <Typography variant="body2" color="text.secondary">
-                      Plant: {gh.plantName}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Sensors: {gh.sensorCount ?? 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Notifications: {gh.unreadNotifications ?? 0}
-                    </Typography>
-                  </Box>
-                  <IconButton
-                    color="error"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(gh.id);
-                    }}
-                    sx={{ mt: 1 }}
-                  >
-                    <Delete />
-                  </IconButton>
-                </CardContent>
-              </Card>
-            </Grid>
+            <GreenhouseCard
+              key={gh.id}
+              greenhouse={gh}
+              handleDelete={handleDelete}
+            />
           ))}
         </Grid>
       )}
