@@ -11,7 +11,6 @@ public class MqttProperties {
     private String topic;
     private String clientId;
 
-    // Getters and setters
     public String getBrokerUrl() {
         return brokerUrl;
     }
